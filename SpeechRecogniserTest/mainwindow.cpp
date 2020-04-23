@@ -40,22 +40,6 @@ MainWindow::MainWindow(QWidget* parent)
   setGeometry(m_x, m_y, m_w, m_h);
 
   initGui();
-
-  QThread* reader_thread = new QThread;
-  m_reader = new MicrophoneReader();
-  connect(
-    reader_thread, &QThread::started, m_reader, &MicrophoneReader::record);
-  connect(m_reader, &MicrophoneReader::finished, reader_thread, &QThread::quit);
-  connect(
-    m_reader, &MicrophoneReader::finished, m_reader, &QObject::deleteLater);
-  connect(m_reader,
-          &MicrophoneReader::finished,
-          reader_thread,
-          &QObject::deleteLater);
-  connect(
-    m_reader, &MicrophoneReader::sendData, m_plot, &MicrophonePlot::addData);
-  m_reader->moveToThread(reader_thread);
-  reader_thread->start();
 }
 
 MainWindow::~MainWindow() {}
@@ -67,7 +51,22 @@ MainWindow::initGui()
   QGridLayout* main_layout = new QGridLayout();
   frm->setLayout(main_layout);
 
+  QThread* recogniser_thread = new QThread;
+  recogniser = new SpeechRecogniser();
+  connect(
+    recogniser, &SpeechRecogniser::finished, recogniser_thread, &QThread::quit);
+  connect(
+    recogniser, &SpeechRecogniser::finished, recogniser, &QObject::deleteLater);
+  connect(recogniser,
+          &SpeechRecogniser::finished,
+          recogniser_thread,
+          &QObject::deleteLater);
+  recogniser->moveToThread(recogniser_thread);
+  recogniser_thread->start();
+
   m_plot = new MicrophonePlot(m_sampleRate, m_displayTime, this);
+  connect(
+    recogniser, &SpeechRecogniser::sendData, m_plot, &MicrophonePlot::addData);
   main_layout->addWidget(m_plot, 0, 0);
 
   setCentralWidget(frm);
@@ -76,8 +75,8 @@ MainWindow::initGui()
 void
 MainWindow::closeEvent(QCloseEvent* event)
 {
-  if (m_reader->isRunning()) {
-    m_reader->stop();
+  if (recogniser->isRunning()) {
+    recogniser->stop();
     event->accept();
   } else {
     event->ignore();

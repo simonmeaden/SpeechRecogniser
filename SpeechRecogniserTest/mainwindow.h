@@ -33,7 +33,7 @@
 #include <QThread>
 
 #include "microphoneplot.h"
-#include "microphonereader.h"
+#include "speechrecogniser.h"
 
 using namespace SpeechRecognition;
 
@@ -49,8 +49,8 @@ private:
   int m_x, m_y, m_w, m_h;
   int m_sampleRate;
   int m_displayTime;
-  MicrophoneReader* m_reader;
   MicrophonePlot* m_plot;
+  SpeechRecogniser* recogniser;
 
   void initGui();
   void closeEvent(QCloseEvent* event);

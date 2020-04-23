@@ -23,6 +23,17 @@
 
 namespace SpeechRecognition {
 
+/*!
+   \brief PortAudio callback method.
+
+   Takes as parameters the input data buffer, the number of frames passed
+   and the sender object, in this case a MicrophoneReader object. Data is
+   passed on to the calling application via the
+  MicrophoneReader::sendData(QVector<float>) signal.
+
+  As we are not using an output buffer of the time info or status flags these
+  are nulled out.
+*/
 static int
 recordCallback(const void* inputBuffer,
                void* /*outputBuffer*/,
@@ -31,9 +42,14 @@ recordCallback(const void* inputBuffer,
                PaStreamCallbackFlags /*statusFlags*/,
                void* sender)
 {
+  /* Don't think that I am supposed to use the void* data pointer to
+    directly access the calling object, it normally allows the application
+    to pass a data object pointer, but that is the only way I could think
+    of to send a Qt signal off with the data.*/
   MicrophoneReader* reader = static_cast<MicrophoneReader*>(sender);
 
   if (!reader->isRunning()) {
+    // This tells PortAudio that we have finished recording.
     return paComplete;
   }
 

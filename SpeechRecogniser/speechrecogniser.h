@@ -26,8 +26,7 @@
 #include <QtDebug>
 
 #include "SpeechRecogniser_global.h"
-#include "pa_ringbuffer.h"
-#include "pa_util.h"
+#include "microphonereader.h"
 #include "portaudio.h"
 #include "snowboy-detect.h"
 
@@ -38,7 +37,21 @@ class SpeechRecogniser : public QObject
   Q_OBJECT
 
 public:
-  explicit SpeechRecogniser(QObject* parent);
+  explicit SpeechRecogniser(QObject* parent = nullptr);
+
+  void stop();
+  bool isRunning();
+  //  void operate();
+
+  void receiveData(QVector<float> data);
+
+signals:
+  void sendData(QVector<float>);
+  void finished();
+
+private:
+  MicrophoneReader* m_reader;
+  bool m_running;
 };
 
 } // end of namespace SpeechRecognition
