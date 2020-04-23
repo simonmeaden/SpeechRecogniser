@@ -5,8 +5,8 @@
 #include <QTimer>
 #include <QWidget>
 
+#include "SpeechRecogniser_global.h"
 #include "circularbuffer.h"
-//#include "portaudiowrapper.h"
 
 namespace SpeechRecognition {
 
@@ -18,7 +18,7 @@ namespace SpeechRecognition {
   rate and display length through it's own methods and store the result in an
   internal buffer.
 */
-class MicrophonePlot : public QFrame
+class SPEECHRECOGNISER_EXPORT MicrophonePlot : public QFrame
 {
   Q_OBJECT
 

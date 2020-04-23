@@ -33,7 +33,7 @@ recordCallback(const void* inputBuffer,
 {
   MicrophoneReader* reader = static_cast<MicrophoneReader*>(sender);
 
-  if (reader->closedDown()) {
+  if (!reader->isRunning()) {
     return paComplete;
   }
 
@@ -59,29 +59,18 @@ recordCallback(const void* inputBuffer,
 }
 
 MicrophoneReader::MicrophoneReader(QObject* parent)
-  : QThread(parent)
+  : QObject(parent)
   , m_running(true)
   , m_stream(nullptr)
 {
   initialise();
 }
 
-MicrophoneReader::~MicrophoneReader()
-{
-  stop();
-  PaError err = Pa_CloseStream(m_stream);
+MicrophoneReader::~MicrophoneReader() {}
 
-  if (err != paNoError) {
-    qWarning() << tr("Error closing stream");
-  }
+/* Initialise the microphone reader.
 
-  Pa_Terminate();
-}
-
-/* Initialise the microphone reader and returns true if successful.
-
-   Sets up the recorder to record data. Use startRecording() to actually start
-   the recorder running.
+   Sets up the recorder to record data.
 */
 void
 MicrophoneReader::initialise()
@@ -153,17 +142,23 @@ MicrophoneReader::stop()
   m_running = false;
 }
 
+/*!
+   \brief Checks that the worker is still running and returns true if it is,
+   otherwise returns false.
+*/
 bool
-MicrophoneReader::closedDown() const
+MicrophoneReader::isRunning() const
 {
-  return !m_running;
+  return m_running;
 }
 
-/*
+/*! \brief This method does the actual work of the worker thread.
 
+   Checks that the portaudio stream is  active and allows data to be passed
+   out to the application via the callback method / qt signal.
 */
 void
-MicrophoneReader::run()
+MicrophoneReader::record()
 {
   PaError err = paNoError;
 
@@ -178,12 +173,23 @@ MicrophoneReader::run()
     }
   }
 
-  //  emit finished();
+  err = Pa_CloseStream(m_stream);
+
+  if (err != paNoError) {
+    qWarning() << tr("Error closing stream");
+  }
+
+  Pa_Terminate();
+
+  emit finished();
 }
 
 /*!
-   \brief Custom method wrapper for the output signal which takes as a parameter
-   a QVector<float>.
+  \brief Custom method wrapper for the output signal which takes as a parameter
+  a QVector<float>.
+
+  This is used by the callback method as it cannot access the Qt signals
+  directly.
 */
 void
 MicrophoneReader::emitData(QVector<float> data)

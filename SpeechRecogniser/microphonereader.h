@@ -25,9 +25,10 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QObject>
-#include <QThread>
+//#include <QThread>
 #include <QtDebug>
 
+#include "SpeechRecogniser_global.h"
 #include "circularbuffer.h"
 #include "portaudio.h"
 
@@ -43,7 +44,7 @@ typedef float SAMPLE;
 
 namespace SpeechRecognition {
 
-class MicrophoneReader : public QThread
+class SPEECHRECOGNISER_EXPORT MicrophoneReader : public QObject
 {
   Q_OBJECT
 
@@ -51,16 +52,15 @@ public:
   explicit MicrophoneReader(QObject* parent = nullptr);
   ~MicrophoneReader();
 
-  bool startRecording();
-  bool stopRecording();
+  void record();
   void stop();
-  void quit();
   void emitData(QVector<float> data);
 
-  bool closedDown() const;
+  bool isRunning() const;
 
 signals:
   void sendData(QVector<float>);
+  void finished();
 
 protected:
   bool m_running;
@@ -68,7 +68,6 @@ protected:
 
   PaStream* m_stream;
   void initialise();
-  void run() override;
 };
 
 } // end of namespace SpeechRecognition

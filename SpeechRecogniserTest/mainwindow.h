@@ -30,6 +30,7 @@
 #include <QPoint>
 #include <QScreen>
 #include <QSize>
+#include <QThread>
 
 #include "microphoneplot.h"
 #include "microphonereader.h"

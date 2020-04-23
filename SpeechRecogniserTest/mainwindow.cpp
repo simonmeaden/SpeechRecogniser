@@ -41,12 +41,21 @@ MainWindow::MainWindow(QWidget* parent)
 
   initGui();
 
-  m_reader = new MicrophoneReader(this);
+  QThread* reader_thread = new QThread;
+  m_reader = new MicrophoneReader();
+  connect(
+    reader_thread, &QThread::started, m_reader, &MicrophoneReader::record);
+  connect(m_reader, &MicrophoneReader::finished, reader_thread, &QThread::quit);
   connect(
     m_reader, &MicrophoneReader::finished, m_reader, &QObject::deleteLater);
+  connect(m_reader,
+          &MicrophoneReader::finished,
+          reader_thread,
+          &QObject::deleteLater);
   connect(
     m_reader, &MicrophoneReader::sendData, m_plot, &MicrophonePlot::addData);
-  m_reader->start();
+  m_reader->moveToThread(reader_thread);
+  reader_thread->start();
 }
 
 MainWindow::~MainWindow() {}
